@@ -1,0 +1,15 @@
+{
+    "projectName": "Protobuf",
+    "languages": [{
+        "id": "protobuf",
+        "grammar": "src/language/protobuf.langium",
+        "fileExtensions": [".proto"],
+        "textMate": {
+            "out": "syntaxes/protobuf.tmLanguage.json"
+        },
+        "monarch": {
+            "out": "syntaxes/protobuf.monarch.ts"
+        }
+    }],
+    "out": "src/language/generated"
+}
