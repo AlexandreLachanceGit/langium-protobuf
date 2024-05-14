@@ -12,6 +12,11 @@ entry Model:
         | services+=Service
     )*;
 
+Type:
+    type=('double' | 'float' | 'int32' | 'int64' | 'uint32' | 'uint64'
+      | 'sint32' | 'sint64' | 'fixed32' | 'fixed64' | 'sfixed32' | 'sfixed64'
+      | 'bool' | 'string' | 'bytes') | (message=[Message:ID] | enum=[Enum:ID] | other=ID);
+
 Syntax: 
     'syntax' '=' syntax=('"proto3"' | "\\'proto3\\'") ';'; // \\ needed to fix bug in langium code gen
 
@@ -19,13 +24,16 @@ Import:
     'import' (weak?='weak' | public?='public')? path=STRING ';';
 
 Constant: 
-    value=(ID | SIGNED_INT | STRING | BOOL); //TODO
+    value=(ID | INT | STRING | BOOL); //TODO
 
 Option:
     'option' name=ID '=' value=Constant ';'; //TODO: Fix option name
 
 Package: 
     'package' name=ID ';'; 
+
+FieldNumber:
+    value=INT;
 
 FieldOption:
     name=ID '=' value=Constant;
@@ -34,10 +42,10 @@ FieldOptions:
     options+=FieldOption (',' options+=FieldOption);
 
 NormalField:
-    (repeated?='repeated') 'a' type=ID name=ID '=' fieldNumber=INT ('[' FieldOptions ']')? ';';
+    (repeated?='repeated')? type=Type name=ID '=' FieldNumber ('[' FieldOptions ']')? ';';
 
 OneofField:
-    type=ID name=ID '=' fieldNumber=INT ('[' FieldOptions ']')? ';';
+    type=Type name=ID '=' FieldNumber ('[' FieldOptions ']')? ';';
 
 Oneof:
     'oneof' name=ID '{' (options+=Option | oneofFields+=OneofField)* '}';
@@ -49,10 +57,10 @@ KeyType:
     );
 
 MapField:
-    'map' '<' keyType=KeyType ',' type=ID '>' name=ID '=' fieldNumber=INT ('[' FieldOptions ']')? ';';
+    'map' '<' keyType=KeyType ',' type=Type '>' name=ID '=' FieldNumber ('[' FieldOptions ']')? ';';
 
 Field: 
-    NormalField | OneofField | MapField;
+    NormalField | MapField;
 
 Range:
     start=INT ('to' (end=INT | max?='max'))?;
@@ -67,7 +75,7 @@ Reserved:
     'reserved' (Ranges | StringList) ';';
 
 EnumField:
-    name=ID '=' ('-')? Integer ('[' FieldOptions ']')? ';';
+    name=ID '=' ('-')? FieldNumber ('[' FieldOptions ']')? ';';
 
 Enum:
     'enum' name=ID '{' 
@@ -83,8 +91,8 @@ Message:
     '}';
 
 Rpc:
-    'rpc' name+=ID '(' stream?='stream' messageType=ID ')'
-    'returns' '(' stream?='stream' messageType=ID ')'
+    'rpc' name+=ID '(' stream?='stream' message=[Message:ID] ')'
+    'returns' '(' stream?='stream' message=[Message:ID] ')'
     ( ('{' (options+=Option | ';')* '}') | ';')
     ;
 
@@ -93,13 +101,9 @@ Service:
         (';' | options+=Option | rpcs+=Rpc)*
     '}';
 
-Integer:
-    value=INT;
-
 hidden terminal WS: /\s+/;
 terminal ID: /[\._a-zA-Z][\w_\.]*/;
-terminal SIGNED_INT: ('+' | '-')? INT;
-terminal INT returns number: /\d+/;
+terminal INT returns number: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 terminal BOOL: "true" | "false";
 
