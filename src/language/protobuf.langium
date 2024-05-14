@@ -15,7 +15,7 @@ entry Model:
 Type:
     type=('double' | 'float' | 'int32' | 'int64' | 'uint32' | 'uint64'
       | 'sint32' | 'sint64' | 'fixed32' | 'fixed64' | 'sfixed32' | 'sfixed64'
-      | 'bool' | 'string' | 'bytes') | (message=[Message:ID] | enum=[Enum:ID] | other=ID);
+      | 'bool' | 'string' | 'bytes') | reference=[TopLevelDec:ID] ;
 
 Syntax: 
     'syntax' '=' syntax=('"proto3"' | "\\'proto3\\'") ';'; // \\ needed to fix bug in langium code gen
@@ -77,22 +77,32 @@ Reserved:
 EnumField:
     name=ID '=' ('-')? FieldNumber ('[' FieldOptions ']')? ';';
 
-Enum:
+interface TopLevelDec {
+    name: string
+}
+
+EnumBody:
+    (';' | options+=Option | reserved+=Reserved | fields+=EnumField)*;
+
+Enum returns TopLevelDec:
     'enum' name=ID '{' 
-        (';' | options+=Option | reserved+=Reserved | fields+=EnumField)*
+        EnumBody
     '}';
 
-Message:
+MessageBody:
+    (
+        ';' | fields+=Field | oneofs+=Oneof | messages+=Message | enums+=Enum
+        | options+=Option | mapFields+=MapField | reserved+=Reserved
+    )*;
+
+Message returns TopLevelDec:
     'message' name=ID '{' 
-        (
-            ';' | fields+=Field | oneofs+=Oneof | messages+=Message | enums+=Enum
-            | options+=Option | mapFields+=MapField | reserved+=Reserved
-        )* 
+        MessageBody
     '}';
 
 Rpc:
-    'rpc' name+=ID '(' stream?='stream' message=[Message:ID] ')'
-    'returns' '(' stream?='stream' message=[Message:ID] ')'
+    'rpc' name=ID '(' stream?='stream' message=[TopLevelDec:ID] ')'
+    'returns' '(' stream?='stream' message=[TopLevelDec:ID] ')'
     ( ('{' (options+=Option | ';')* '}') | ';')
     ;
 
