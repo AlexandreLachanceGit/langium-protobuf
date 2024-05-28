@@ -1,7 +1,7 @@
 import { type Module, inject } from 'langium';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { ProtobufGeneratedModule, ProtobufGeneratedSharedModule } from './generated/module.js';
-import { ProtobufValidator, registerValidationChecks } from './protobuf-validator.js';
+import { ProtobufDocumentValidaor, ProtobufValidator, registerValidationChecks } from './protobuf-validator.js';
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -25,8 +25,9 @@ export type ProtobufServices = LangiumServices & ProtobufAddedServices
  */
 export const ProtobufModule: Module<ProtobufServices, PartialLangiumServices & ProtobufAddedServices> = {
     validation: {
-        ProtobufValidator: () => new ProtobufValidator()
-    }
+        ProtobufValidator: () => new ProtobufValidator(),
+        DocumentValidator: () => new ProtobufDocumentValidaor(),
+    },
 };
 
 /**
